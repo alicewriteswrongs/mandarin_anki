@@ -2,5 +2,8 @@
   "name": "mandarin_to_anki",
   "version": "1.0.0",
   "main": "mandarin_to_anki.js",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "cedict-lookup": "^0.0.2"
+  }
 }
