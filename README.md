@@ -9,10 +9,12 @@ to, for instance, look up the word 你, you would get two cards:
 
 ```
 first card:
-你,"nǐ, you (informal, as opposed to courteous 您[nin2])"
+front: 你
+back: "nǐ, you (informal, as opposed to courteous 您[nin2])"
 
 second card:
-nǐ,"你, you (informal, as opposed to courteous 您[nin2])"
+front: nǐ,
+back: "你, you (informal, as opposed to courteous 您[nin2])"
 ```
 
 The first one shows you the character and asks for the pronunciation and
