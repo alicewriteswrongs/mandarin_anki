@@ -4,6 +4,9 @@
   "main": "mandarin_to_anki.js",
   "license": "MIT",
   "dependencies": {
-    "cedict-lookup": "^0.0.2"
+    "cedict-lookup": "^0.0.2",
+    "commander": "^2.14.1",
+    "csv": "^2.0.0",
+    "pinyin": "^2.8.3"
   }
 }
