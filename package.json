@@ -8,6 +8,7 @@
     "cedict-lookup": "^0.0.2",
     "commander": "^2.14.1",
     "csv": "^2.0.0",
-    "pinyin": "^2.8.3"
+    "pinyin": "^2.8.3",
+    "ramda": "^0.25.0"
   }
 }
