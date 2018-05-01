@@ -2,6 +2,10 @@
 # yarn lockfile v1
 
 
+"@zurawiki/hanzi@^0.7.0":
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/@zurawiki/hanzi/-/hanzi-0.7.0.tgz#5d9b72b435f94a1fc519381ffcfb9cd1f19bb7ef"
+
 cedict-lookup@^0.0.2:
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/cedict-lookup/-/cedict-lookup-0.0.2.tgz#197e8ecaa04936a9499f73d99496a98b110e814b"
