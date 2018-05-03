@@ -52,7 +52,9 @@ const radicalInfo = JSON.parse(
 // if this is done naively, it grabs almost every word defined in the dictionary
 // so we do want to limit ourselves to words we're actually likely to encounter
 // for this reason, we'll limit ourselves to words that are present on the HSK
-// level 1-6 list or among the 8000 most commonly used words in Mandarin.
+// level 1-6 list.
+//
+// HSK vocab files taken from http://www.hskhsk.com/word-lists.html
 const hskFilepaths = [
   "data/hsk_vocab/HSK Official 2012 L1.txt",
   "data/hsk_vocab/HSK Official 2012 L2.txt",
@@ -74,7 +76,9 @@ const hskVocab = getHSKVocab(hskFilepaths)
 const getVocabWordsByLevel = levels => {
   let hanziSoFar = []
   let wordsSoFar = []
-  return levels.map(level => {
+
+  return levels.map((level, idx) => {
+    console.log(`processing level ${idx + 1}`);
     const candidateWords = R.chain(
       char => hanzi.dictionarySearch(char).map(([entry]) => entry.simplified),
       level
@@ -97,3 +101,9 @@ const getVocabWordsByLevel = levels => {
 }
 
 const vocabWordsByLevel = getVocabWordsByLevel(levels)
+
+const pairs = R.flatten(R.flatten(vocabWordsByLevel).map(word => dict.getMatch(word))).map(entry => [entry.simplified, entry.english])
+
+stringify(pairs, (err, output) => {
+  fs.writeFileSync('pairs.csv', output)
+})
