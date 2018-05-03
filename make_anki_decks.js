@@ -17,12 +17,13 @@ const getHanziDistributedWeightOrder = () => {
     .map(row => row.split(",")[0])
 }
 
+const hanziDistributedWeightOrder = getHanziDistributedWeightOrder()
+
 // We're going to organize the decks into 'levels' of 20 hanzi per level
 const levels = R.splitEvery(20, hanziDistributedWeightOrder)
 
 // we want to calculate the radicals which are unique to each level
 // so we can group them with the hanzi that contain them
-
 const getRadicalsByLevel = levels => {
   let allRadicals = []
   return levels.map(level => {
@@ -41,12 +42,35 @@ const radicals = getRadicalsByLevel(levels)
 
 // I scraped information about the meaning and pronunciation of the
 // kangxi radicals from here: http://hanzidb.org/radicals
-const radicals = JSON.parse(
+const radicalInfo = JSON.parse(
   String(fs.readFileSync("data/kangxi_radicals.json"))
 )
 
 // now lets try to find words, for each level, which only use the hanzi in that level
 // it takes a little bit of time to calculate this for each level
+//
+// if this is done naively, it grabs almost every word defined in the dictionary
+// so we do want to limit ourselves to words we're actually likely to encounter
+// for this reason, we'll limit ourselves to words that are present on the HSK
+// level 1-6 list or among the 8000 most commonly used words in Mandarin.
+const hskFilepaths = [
+  "data/hsk_vocab/HSK Official 2012 L1.txt",
+  "data/hsk_vocab/HSK Official 2012 L2.txt",
+  "data/hsk_vocab/HSK Official 2012 L3.txt",
+  "data/hsk_vocab/HSK Official 2012 L4.txt",
+  "data/hsk_vocab/HSK Official 2012 L5.txt",
+  "data/hsk_vocab/HSK Official 2012 L6.txt"
+]
+
+const getHSKVocab = R.compose(
+  R.chain(R.map(R.trim)),
+  R.map(R.split("\n")),
+  R.map(String),
+  R.map(fs.readFileSync)
+)
+
+const hskVocab = getHSKVocab(hskFilepaths)
+
 const getVocabWordsByLevel = levels => {
   let hanziSoFar = []
   let wordsSoFar = []
@@ -54,7 +78,9 @@ const getVocabWordsByLevel = levels => {
     const candidateWords = R.chain(
       char => hanzi.dictionarySearch(char).map(([entry]) => entry.simplified),
       level
-    ).filter(word => !wordsSoFar.includes(word))
+    )
+      .filter(word => !wordsSoFar.includes(word))
+      .filter(word => hskVocab.includes(word))
 
     hanziSoFar = hanziSoFar.concat(level)
     const goodWords = candidateWords.filter(word => {
