@@ -78,7 +78,7 @@ const getVocabWordsByLevel = levels => {
   let wordsSoFar = []
 
   return levels.map((level, idx) => {
-    console.log(`processing level ${idx + 1}`);
+    console.log(`processing level ${idx + 1}`)
     const candidateWords = R.chain(
       char => hanzi.dictionarySearch(char).map(([entry]) => entry.simplified),
       level
@@ -102,8 +102,10 @@ const getVocabWordsByLevel = levels => {
 
 const vocabWordsByLevel = getVocabWordsByLevel(levels)
 
-const pairs = R.flatten(R.flatten(vocabWordsByLevel).map(word => dict.getMatch(word))).map(entry => [entry.simplified, entry.english])
+const pairs = R.flatten(
+  R.flatten(vocabWordsByLevel).map(word => dict.getMatch(word))
+).map(entry => [entry.simplified, entry.english])
 
 stringify(pairs, (err, output) => {
-  fs.writeFileSync('pairs.csv', output)
+  fs.writeFileSync("pairs.csv", output)
 })
