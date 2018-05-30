@@ -53,9 +53,10 @@ const radicalInfo = JSON.parse(
 // if this is done naively, it grabs almost every word defined in the dictionary
 // so we do want to limit ourselves to words we're actually likely to encounter
 // for this reason, we'll limit ourselves to words that are present on the HSK
-// level 1-6 list.
+// level 1-6 list or are present in a list of the 10000 most commonly used words
 //
 // HSK vocab files taken from http://www.hskhsk.com/word-lists.html
+// word frequency list taken from https://en.wiktionary.org/wiki/Appendix:Mandarin_Frequency_lists
 const hskFilepaths = [
   "data/hsk_vocab/HSK Official 2012 L1.txt",
   "data/hsk_vocab/HSK Official 2012 L2.txt",
@@ -74,30 +75,60 @@ const getHSKVocab = R.compose(
 
 const hskVocab = getHSKVocab(hskFilepaths)
 
+const wordFrequencyFilepaths = [
+  "data/word_frequency/1-1000.json",
+  "data/word_frequency/1001-2000.json",
+  "data/word_frequency/2001-3000.json",
+  "data/word_frequency/3001-4000.json",
+  "data/word_frequency/4001-5000.json",
+  "data/word_frequency/5001-6000.json",
+  "data/word_frequency/6001-7000.json",
+  "data/word_frequency/7001-8000.json",
+  "data/word_frequency/8001-9000.json",
+  "data/word_frequency/9001-10000.json"
+]
+
+const getWordFrequency = R.compose(
+  R.flatten,
+  R.map(JSON.parse),
+  R.map(String),
+  R.map(fs.readFileSync)
+)
+
+const mostCommon10000 = getWordFrequency(wordFrequencyFilepaths)
+
+// this produces a list with 9948 unique words
+// (I belive this is an artifact of the most common ranking counting
+// words written with the same character but different functions
+// differently - we look up all definitions later, so we just care about
+// the character composition here)
+const vocabList = [...new Set([...mostCommon10000, ...hskVocab])]
+
 const getVocabWordsByLevel = levels => {
   let hanziSoFar = []
   let wordsSoFar = []
 
   return levels.map((level, idx) => {
     console.log(`processing level ${idx + 1}`)
-    const candidateWords = R.chain(
-      char => hanzi.dictionarySearch(char).map(([entry]) => entry.simplified),
+
+    hanziSoFar = hanziSoFar.concat(level)
+
+    const wordsForLevel = R.chain(
+      char => vocabList.filter(word => word.includes(char)),
       level
     )
       .filter(word => !wordsSoFar.includes(word))
-      .filter(word => hskVocab.includes(word))
-
-    hanziSoFar = hanziSoFar.concat(level)
-    const goodWords = candidateWords.filter(word => {
-      for (let char of word.split("")) {
-        if (!hanziSoFar.includes(char)) {
-          return false
+      .filter(word => {
+        for (let char of word.split("")) {
+          if (!hanziSoFar.includes(char)) {
+            return false
+          }
         }
-      }
-      return true
-    })
-    wordsSoFar = wordsSoFar.concat(goodWords)
-    return goodWords
+        return true
+      })
+
+    wordsSoFar = wordsSoFar.concat(wordsForLevel)
+    return wordsForLevel
   })
 }
 
@@ -118,8 +149,6 @@ const summaryString = levels.map((level, idx) => {
     .map(entry => [entry.simplified, entry.english])
     .map(String)
     .join("\n")
-
-  console.log(vocab)
 
   return `${idx} level\n\nradicals\n${radicals[
     idx
