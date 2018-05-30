@@ -41,6 +41,43 @@ const getRadicalsByLevel = levels => {
 
 const radicals = getRadicalsByLevel(levels)
 
+// the DNWorder for the Hanzi leaves out some hanzi which are found in both the 10,000
+// most common words, and also some hanzi which are found in HSK. We want to insert 
+// those back into the levels, at a point where the radicals the include have already
+// been covered. I calcualted which hanzi were missing, and these are them:
+const unincludedHSKHanzi = "四伞互嚏裔桔鼠浏魅嗯升髦暧凹凸曝甭迸嘈诧磋馈禽兽墟尴尬阂嗨暄咀瞩侃愣嘛哦烹饪锲曲惮婪缉哇潇熨咋拽".split("")
+
+const unincluded10000Hanzi = "四妳嗯嘛牠互佔遊喔藉週欸升閒昇哦谘讬籲彷彿蒐蹟佈惟魅哇暨鑑曲慾郝馨馈闢鼠曝夥陀吋迴羨唸疡瞩罹禅甄裏嚮囉憩洛杉矶诠稣齣遴祇纾樑埔尴尬聆卅蟑螂唢呐伞豚呎祕蔡裔傢讚拚汙菁琵鹭抨鲍痣氾撷侷祉兇抉凸憧憬塭虔髦餵槟榔籤痺瀰噢淨俟狩卉睐噁鹿甦隍牟祀燕浏咦亟紮辄湧缉珊瑚乾".split("")
+
+const allMissedCharacters = R.uniq([
+  ...unincludedHSKHanzi,
+  ...unincluded10000Hanzi
+])
+
+
+const arrSubset = (xs, ys) => {
+  for (let item of xs) {
+    if (!ys.includes(item)) {
+      return false
+    }
+  }
+  return true
+}
+
+allMissedCharacters.forEach(missedCharacter => {
+  const components = hanzi.decompose(missedCharacter, 2).components
+
+  let idx = 0
+  for (let radicalLevel of radicals) {
+    if (arrSubset(components, radicalLevel)) {
+      levels[idx].push(missedCharacter)
+      return
+    } else {
+      idx++
+    }
+  }
+})
+
 // I scraped information about the meaning and pronunciation of the
 // kangxi radicals from here: http://hanzidb.org/radicals
 const radicalInfo = JSON.parse(
@@ -102,7 +139,7 @@ const mostCommon10000 = getWordFrequency(wordFrequencyFilepaths)
 // words written with the same character but different functions
 // differently - we look up all definitions later, so we just care about
 // the character composition here)
-const vocabList = [...new Set([...mostCommon10000, ...hskVocab])]
+const vocabList = R.uniq([...mostCommon10000, ...hskVocab])
 
 const getVocabWordsByLevel = levels => {
   let hanziSoFar = []
@@ -133,6 +170,8 @@ const getVocabWordsByLevel = levels => {
 }
 
 const vocabWordsByLevel = getVocabWordsByLevel(levels)
+
+const allHanziInVocab = R.uniq(R.flatten(vocabWordsByLevel).join("").split(""))
 
 const pairs = R.flatten(
   R.flatten(vocabWordsByLevel).map(word => dict.getMatch(word))
