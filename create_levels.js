@@ -20,11 +20,27 @@ const getHanziDistributedWeightOrder = () => {
 
 const hanziDistributedWeightOrder = getHanziDistributedWeightOrder()
 
+// I found that, when using this list, there are a number of hanzi included
+// in the list which are not found in any of the vocab I'm interested in
+// (the HSK list and the 10000 most common words). I calculated which hanzi
+// weren't included and wrote those to a JSON file. We want to exclude those
+// from the list so that we don't bother learning hanzi which we won't learn any
+// words for. At some point in the future it may make sense to add these back,
+// but 10,000 vocab and all the characters used therein is a good start!
+const hanziNotFoundInVocab = JSON.parse(
+  fs.readFileSync("data/hanzi_not_in_vocab.json")
+)
+
 // We're going to organize the decks into 'levels' of 20 hanzi per level
-const levels = R.splitEvery(20, hanziDistributedWeightOrder)
+// we'll exclude the silly hanzi when we do
+const levels = R.splitEvery(
+  20,
+  R.difference(hanziDistributedWeightOrder, hanziNotFoundInVocab)
+)
 
 // we want to calculate the radicals which are unique to each level
-// so we can group them with the hanzi that contain them
+// so we can group them with the hanzi that contain them and learn
+// them together
 const getRadicalsByLevel = levels => {
   let allRadicals = []
   return levels.map(level => {
@@ -39,7 +55,7 @@ const getRadicalsByLevel = levels => {
   })
 }
 
-const radicals = getRadicalsByLevel(levels)
+let radicals = getRadicalsByLevel(levels)
 
 // the DNWorder for the Hanzi leaves out some hanzi which are found in both the 10,000
 // most common words, and also some hanzi which are found in HSK. We want to insert
@@ -58,9 +74,10 @@ const allMissedCharacters = R.uniq([
   ...unincluded10000Hanzi
 ])
 
+// calculate whether xs is a subset of ys
 const arrSubset = (xs, ys) => {
-  for (let item of xs) {
-    if (!ys.includes(item)) {
+  for (let x of xs) {
+    if (!ys.includes(x)) {
       return false
     }
   }
@@ -87,13 +104,19 @@ const uninsertedCharacters = allMissedCharacters
 
 // the ones which have radicals we haven't encountered yet (which is most of them)
 // we'll just stick in, one per level, starting at level 11 (arbitrarily chosen)
+// a few bunch up on the last level but I think that's ok
 uninsertedCharacters.forEach((char, idx) => {
-  levels[idx + 10].push(char)
-  radicals[idx + 10] = R.reject(
+  index = R.min(idx + 10, levels.length - 1)
+  levels[index].push(char)
+  radicals[index] = R.reject(
     R.equals("No glyph available"),
-    R.uniq([...radicals[idx + 10], ...hanzi.decompose(char, 2).components])
+    R.uniq([...radicals[index], ...hanzi.decompose(char, 2).components])
   )
 })
+
+// now that we've fiddled with the hanzi levels (inserted new things and so on)
+// it's probably best to recalculate the radical levels
+radicals = getRadicalsByLevel(levels)
 
 // I scraped information about the meaning and pronunciation of the
 // kangxi radicals from here: http://hanzidb.org/radicals
@@ -110,7 +133,6 @@ const radicalInfo = JSON.parse(
 // level 1-6 list or are present in a list of the 10000 most commonly used words
 //
 // HSK vocab files taken from http://www.hskhsk.com/word-lists.html
-// word frequency list taken from https://en.wiktionary.org/wiki/Appendix:Mandarin_Frequency_lists
 const hskFilepaths = [
   "data/hsk_vocab/HSK Official 2012 L1.txt",
   "data/hsk_vocab/HSK Official 2012 L2.txt",
@@ -129,6 +151,7 @@ const getHSKVocab = R.compose(
 
 const hskVocab = getHSKVocab(hskFilepaths)
 
+// word frequency list taken from https://en.wiktionary.org/wiki/Appendix:Mandarin_Frequency_lists
 const wordFrequencyFilepaths = [
   "data/word_frequency/1-1000.json",
   "data/word_frequency/1001-2000.json",
@@ -158,6 +181,8 @@ const mostCommon10000 = getWordFrequency(wordFrequencyFilepaths)
 // the character composition here)
 const vocabList = R.uniq([...mostCommon10000, ...hskVocab])
 
+// now we want to go through our hanzi levels and find the vocabulary words
+// which are written with those hanzi. after we do that, we can get to studying!
 const getVocabWordsByLevel = levels => {
   let hanziSoFar = []
   let wordsSoFar = []
@@ -188,16 +213,9 @@ const getVocabWordsByLevel = levels => {
 
 const vocabWordsByLevel = getVocabWordsByLevel(levels)
 
-const allHanziInVocab = R.uniq(R.flatten(vocabWordsByLevel).join("").split(""))
-
-const pairs = R.flatten(
-  R.flatten(vocabWordsByLevel).map(word => dict.getMatch(word))
-).map(entry => [entry.simplified, entry.english])
-
-stringify(pairs, (err, output) => {
-  fs.writeFileSync("pairs.csv", output)
-})
-
+// this just prints out a summary of the contents of all the levels
+// when we're doing this for real we'll want to export to JSON, CSV,
+// or similar, but this is good for debugging / viewing purposes
 const summaryString = levels.map((level, idx) => {
   const vocab = R.flatten(
     vocabWordsByLevel[idx].map(word => dict.getMatch(word))
