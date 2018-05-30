@@ -42,18 +42,21 @@ const getRadicalsByLevel = levels => {
 const radicals = getRadicalsByLevel(levels)
 
 // the DNWorder for the Hanzi leaves out some hanzi which are found in both the 10,000
-// most common words, and also some hanzi which are found in HSK. We want to insert 
+// most common words, and also some hanzi which are found in HSK. We want to insert
 // those back into the levels, at a point where the radicals the include have already
 // been covered. I calcualted which hanzi were missing, and these are them:
-const unincludedHSKHanzi = "四伞互嚏裔桔鼠浏魅嗯升髦暧凹凸曝甭迸嘈诧磋馈禽兽墟尴尬阂嗨暄咀瞩侃愣嘛哦烹饪锲曲惮婪缉哇潇熨咋拽".split("")
+const unincludedHSKHanzi = "四伞互嚏裔桔鼠浏魅嗯升髦暧凹凸曝甭迸嘈诧磋馈禽兽墟尴尬阂嗨暄咀瞩侃愣嘛哦烹饪锲曲惮婪缉哇潇熨咋拽".split(
+  ""
+)
 
-const unincluded10000Hanzi = "四妳嗯嘛牠互佔遊喔藉週欸升閒昇哦谘讬籲彷彿蒐蹟佈惟魅哇暨鑑曲慾郝馨馈闢鼠曝夥陀吋迴羨唸疡瞩罹禅甄裏嚮囉憩洛杉矶诠稣齣遴祇纾樑埔尴尬聆卅蟑螂唢呐伞豚呎祕蔡裔傢讚拚汙菁琵鹭抨鲍痣氾撷侷祉兇抉凸憧憬塭虔髦餵槟榔籤痺瀰噢淨俟狩卉睐噁鹿甦隍牟祀燕浏咦亟紮辄湧缉珊瑚乾".split("")
+const unincluded10000Hanzi = "四妳嗯嘛牠互佔遊喔藉週欸升閒昇哦谘讬籲彷彿蒐蹟佈惟魅哇暨鑑曲慾郝馨馈闢鼠曝夥陀吋迴羨唸疡瞩罹禅甄裏嚮囉憩洛杉矶诠稣齣遴祇纾樑埔尴尬聆卅蟑螂唢呐伞豚呎祕蔡裔傢讚拚汙菁琵鹭抨鲍痣氾撷侷祉兇抉凸憧憬塭虔髦餵槟榔籤痺瀰噢淨俟狩卉睐噁鹿甦隍牟祀燕浏咦亟紮辄湧缉珊瑚乾".split(
+  ""
+)
 
 const allMissedCharacters = R.uniq([
   ...unincludedHSKHanzi,
   ...unincluded10000Hanzi
 ])
-
 
 const arrSubset = (xs, ys) => {
   for (let item of xs) {
@@ -64,18 +67,32 @@ const arrSubset = (xs, ys) => {
   return true
 }
 
-allMissedCharacters.forEach(missedCharacter => {
-  const components = hanzi.decompose(missedCharacter, 2).components
+// this inserts the ones which we already have radicals for
+const uninsertedCharacters = allMissedCharacters
+  .map(missedCharacter => {
+    const components = hanzi.decompose(missedCharacter, 2).components
 
-  let idx = 0
-  for (let radicalLevel of radicals) {
-    if (arrSubset(components, radicalLevel)) {
-      levels[idx].push(missedCharacter)
-      return
-    } else {
-      idx++
+    let idx = 0
+    for (let radicalLevel of radicals) {
+      if (arrSubset(components, radicalLevel)) {
+        levels[idx].push(missedCharacter)
+        return null
+      } else {
+        idx++
+      }
     }
-  }
+    return missedCharacter
+  })
+  .filter(char => char !== null)
+
+// the ones which have radicals we haven't encountered yet (which is most of them)
+// we'll just stick in, one per level, starting at level 11 (arbitrarily chosen)
+uninsertedCharacters.forEach((char, idx) => {
+  levels[idx + 10].push(char)
+  radicals[idx + 10] = R.reject(
+    R.equals("No glyph available"),
+    R.uniq([...radicals[idx + 10], ...hanzi.decompose(char, 2).components])
+  )
 })
 
 // I scraped information about the meaning and pronunciation of the
