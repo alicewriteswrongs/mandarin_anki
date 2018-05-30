@@ -15,6 +15,7 @@ const getHanziDistributedWeightOrder = () => {
   return String(fs.readFileSync("./data/DNWorder.txt"))
     .split("\n")
     .map(row => row.split(",")[0])
+    .map(char => char.trim())
 }
 
 const hanziDistributedWeightOrder = getHanziDistributedWeightOrder()
@@ -109,3 +110,20 @@ const pairs = R.flatten(
 stringify(pairs, (err, output) => {
   fs.writeFileSync("pairs.csv", output)
 })
+
+const summaryString = levels.map((level, idx) => {
+  const vocab = R.flatten(
+    vocabWordsByLevel[idx].map(word => dict.getMatch(word))
+  )
+    .map(entry => [entry.simplified, entry.english])
+    .map(String)
+    .join("\n")
+
+  console.log(vocab)
+
+  return `${idx} level\n\nradicals\n${radicals[
+    idx
+  ]}\n\nhanzi\n${level}\n\nvocab\n${vocab}\n`
+})
+
+fs.writeFileSync("summary.txt", summaryString.join("\n"))
