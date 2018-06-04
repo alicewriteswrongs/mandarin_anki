@@ -1,4 +1,4 @@
-# Utils for using anki to study Mandarin Chinese
+# Utils for studying Mandarin Chinese
 
 ## mandarin_to_anki.js
 
