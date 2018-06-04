@@ -33,3 +33,29 @@ import these `.csv` files into an existing Anki deck or create a new one
 separately).
 
 Happy studying!
+
+## create_levels.js
+
+This is my attempt to replicate [wanikani's](https://www.wanikani.com/)
+learning style, but for Mandarin instead of Japanese. Basically, the Hanzi
+found in the HSK standardized test are broken down into levels of 20 or so
+Hanzi per level. Each level consists of the new radicals found in the
+Hanzi in that level, the Hanzi themselves, and a collection of vocab words
+which can be written with the Hanzi found in that level and previous
+levels. Vocab is pulled from the HSK 1-5 vocab list, and a list of the
+10000 most common words in Mandarin.
+
+This strategy ends up greatly simplifying the task of learning a language
+like Japanese or Chinese for English speakers. Instead of memorizing words
+randomly, and learning a whole bunch of unrelated characters, the
+relationships between characters, the radicals that comprise them, are
+used to learn them in a structured way. Then the characters are reinforced
+by learning tons and tons of vocab that uses them! It works very well on
+wanikani, my hope is that it will work well for Mandarin as well (and
+perhaps even for learning the Sino-Korean vocabulary in Korean...).
+
+I haven't tried going through it yet myself though. I imagine it would
+take a year or more to go through all the material and learn it, probably
+by adding teh material to Anki or something similar one level at a time.
+At some point in the future, when I want to start studying Mandarin, I'll
+build a wanikani-esque web app which uses this list.
