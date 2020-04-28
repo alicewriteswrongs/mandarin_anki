@@ -2,7 +2,7 @@ const { loadSimplified } = require("cedict-lookup")
 const pinyin = require("pinyin")
 const program = require("commander")
 const fs = require("fs")
-const { stringify } = require("csv")
+const stringify = require("csv-stringify/lib/sync")
 const R = require("ramda")
 const hanzi = require("@zurawiki/hanzi")
 
@@ -14,8 +14,8 @@ const dict = loadSimplified("./data/cedict_ts.u8")
 const getHanziDistributedWeightOrder = () => {
   return String(fs.readFileSync("./data/DNWorder.txt"))
     .split("\n")
-    .map(row => row.split(",")[0])
-    .map(char => char.trim())
+    .map((row) => row.split(",")[0])
+    .map((char) => char.trim())
 }
 
 const hanziDistributedWeightOrder = getHanziDistributedWeightOrder()
@@ -41,14 +41,14 @@ const levels = R.splitEvery(
 // we want to calculate the radicals which are unique to each level
 // so we can group them with the hanzi that contain them and learn
 // them together
-const getRadicalsByLevel = levels => {
+const getRadicalsByLevel = (levels) => {
   let allRadicals = []
-  return levels.map(level => {
+  return levels.map((level) => {
     // we only want the radicals which are new in this level
     const uniqueRadicals = R.compose(
       R.reject(R.equals("No glyph available")),
       R.difference(R.__, allRadicals),
-      R.chain(char => hanzi.decompose(char, 2).components)
+      R.chain((char) => hanzi.decompose(char, 2).components)
     )(level)
     allRadicals = allRadicals.concat(uniqueRadicals)
     return uniqueRadicals
@@ -71,7 +71,7 @@ const unincluded10000Hanzi = "四妳嗯嘛牠互佔遊喔藉週欸升閒昇哦�
 
 const allMissedCharacters = R.uniq([
   ...unincludedHSKHanzi,
-  ...unincluded10000Hanzi
+  ...unincluded10000Hanzi,
 ])
 
 // calculate whether xs is a subset of ys
@@ -86,7 +86,7 @@ const arrSubset = (xs, ys) => {
 
 // this inserts the ones which we already have radicals for
 const uninsertedCharacters = allMissedCharacters
-  .map(missedCharacter => {
+  .map((missedCharacter) => {
     const components = hanzi.decompose(missedCharacter, 2).components
 
     let idx = 0
@@ -100,7 +100,7 @@ const uninsertedCharacters = allMissedCharacters
     }
     return missedCharacter
   })
-  .filter(char => char !== null)
+  .filter((char) => char !== null)
 
 // the ones which have radicals we haven't encountered yet (which is most of them)
 // we'll just stick in, one per level, starting at level 11 (arbitrarily chosen)
@@ -120,8 +120,18 @@ radicals = getRadicalsByLevel(levels)
 
 // I scraped information about the meaning and pronunciation of the
 // kangxi radicals from here: http://hanzidb.org/radicals
-const radicalInfo = JSON.parse(
-  String(fs.readFileSync("data/kangxi_radicals.json"))
+const radicalInfo = Object.fromEntries(
+  JSON.parse(String(fs.readFileSync("data/kangxi_radicals.json"))).map(
+    ([radical, simplified, pinyin, meaning]) => [
+      simplified === "" ? radical : simplified,
+      {
+        radical: simplified === "" ? radical : simplified,
+        traditional: simplified !== "" ? radical : "",
+        pinyin,
+        meaning,
+      },
+    ]
+  )
 )
 
 // now lets try to find words, for each level, which only use the hanzi in that level
@@ -139,7 +149,7 @@ const hskFilepaths = [
   "data/hsk_vocab/HSK Official 2012 L3.txt",
   "data/hsk_vocab/HSK Official 2012 L4.txt",
   "data/hsk_vocab/HSK Official 2012 L5.txt",
-  "data/hsk_vocab/HSK Official 2012 L6.txt"
+  "data/hsk_vocab/HSK Official 2012 L6.txt",
 ]
 
 const getHSKVocab = R.compose(
@@ -162,7 +172,7 @@ const wordFrequencyFilepaths = [
   "data/word_frequency/6001-7000.json",
   "data/word_frequency/7001-8000.json",
   "data/word_frequency/8001-9000.json",
-  "data/word_frequency/9001-10000.json"
+  "data/word_frequency/9001-10000.json",
 ]
 
 const getWordFrequency = R.compose(
@@ -183,7 +193,7 @@ const vocabList = R.uniq([...mostCommon10000, ...hskVocab])
 
 // now we want to go through our hanzi levels and find the vocabulary words
 // which are written with those hanzi. after we do that, we can get to studying!
-const getVocabWordsByLevel = levels => {
+const getVocabWordsByLevel = (levels) => {
   let hanziSoFar = []
   let wordsSoFar = []
 
@@ -193,11 +203,11 @@ const getVocabWordsByLevel = levels => {
     hanziSoFar = hanziSoFar.concat(level)
 
     const wordsForLevel = R.chain(
-      char => vocabList.filter(word => word.includes(char)),
+      (char) => vocabList.filter((word) => word.includes(char)),
       level
     )
-      .filter(word => !wordsSoFar.includes(word))
-      .filter(word => {
+      .filter((word) => !wordsSoFar.includes(word))
+      .filter((word) => {
         for (let char of word.split("")) {
           if (!hanziSoFar.includes(char)) {
             return false
@@ -213,20 +223,77 @@ const getVocabWordsByLevel = levels => {
 
 const vocabWordsByLevel = getVocabWordsByLevel(levels)
 
+const radicalsToCSV = (radicals) => {
+  let cards = []
+  radicals.forEach((radicalLevel, idx) => {
+    radicalLevel.forEach((radical) => {
+      const entry = radicalInfo[radical]
+
+      if (entry) {
+        cards.push([
+          radical,
+          entry.traditional,
+          entry.pinyin,
+          entry.meaning,
+          `level${idx + 1}`,
+        ])
+      } else {
+        cards.push([radical, "", "", "", `level${idx + 1}`])
+      }
+    })
+  })
+
+  fs.writeFileSync("radicals.csv", stringify(cards))
+}
+
+radicalsToCSV(radicals)
+
+const getDefinition = (word) => {
+  const entries = dict.getMatch(word)
+
+  if (entries.length === 0) {
+    return ""
+  }
+
+  const definitions = entries.map((entry) => entry.english).join("\n")
+
+  return definitions
+}
+
+const getPinyin = (word) => R.flatten(pinyin(word)).join("")
+
+const vocabToCSV = (vocabWordsByLevel) => {
+  let cards = []
+
+  vocabWordsByLevel.map((level, idx) => {
+    R.uniq(level).map((word) => {
+      const definitions = getDefinition(word)
+
+      if (!definitions) {
+        return
+      }
+
+      cards.push([word, getPinyin(word), definitions, `level${idx + 1}`])
+    })
+  })
+
+  fs.writeFileSync("vocab.csv", stringify(cards))
+}
+
+vocabToCSV(vocabWordsByLevel)
+
 // this just prints out a summary of the contents of all the levels
 // when we're doing this for real we'll want to export to JSON, CSV,
 // or similar, but this is good for debugging / viewing purposes
 const summaryString = levels.map((level, idx) => {
   const vocab = R.flatten(
-    vocabWordsByLevel[idx].map(word => dict.getMatch(word))
+    vocabWordsByLevel[idx].map((word) => dict.getMatch(word))
   )
-    .map(entry => [entry.simplified, entry.english])
+    .map((entry) => [entry.simplified, entry.english])
     .map(String)
     .join("\n")
 
-  return `${idx} level\n\nradicals\n${radicals[
-    idx
-  ]}\n\nhanzi\n${level}\n\nvocab\n${vocab}\n`
+  return `${idx} level\n\nradicals\n${radicals[idx]}\n\nhanzi\n${level}\n\nvocab\n${vocab}\n`
 })
 
 fs.writeFileSync("summary.txt", summaryString.join("\n"))

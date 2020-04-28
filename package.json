@@ -9,6 +9,10 @@
     "commander": "^2.14.1",
     "csv": "^2.0.0",
     "pinyin": "^2.8.3",
+    "prettier": "^2.0.5",
     "ramda": "^0.25.0"
+  },
+  "scripts": {
+    "fmt": "prettier --write --no-semi *.js"
   }
 }

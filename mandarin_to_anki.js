@@ -6,24 +6,27 @@ const { stringify } = require("csv")
 
 const dict = loadSimplified("./cedict_ts.u8")
 
-const lookUpWord = word => {
+const lookUpWord = (word) => {
   const [entry] = dict.getMatch(word)
 
   return {
     hanzi: entry.simplified,
     english: entry.english,
-    pinyin: pinyin(word).join(" ")
+    pinyin: pinyin(word).join(" "),
   }
 }
 
-const processWords = words =>
-  words.map(lookUpWord).reduce(([hanziToEn, pinyinToHanzi], entry) => {
-    hanziToEn.push([entry.hanzi, `${entry.pinyin}\n${entry.english}`])
-    pinyinToHanzi.push([entry.pinyin, `${entry.hanzi}\n${entry.english}`])
-    return [hanziToEn, pinyinToHanzi]
-  }, [[], []])
+const processWords = (words) =>
+  words.map(lookUpWord).reduce(
+    ([hanziToEn, pinyinToHanzi], entry) => {
+      hanziToEn.push([entry.hanzi, `${entry.pinyin}\n${entry.english}`])
+      pinyinToHanzi.push([entry.pinyin, `${entry.hanzi}\n${entry.english}`])
+      return [hanziToEn, pinyinToHanzi]
+    },
+    [[], []]
+  )
 
-const getWordsFromFile = path =>
+const getWordsFromFile = (path) =>
   fs.readFileSync(path).toString().trim().split("\n")
 
 const writeRecordsToFile = (facts, filepath) =>
