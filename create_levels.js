@@ -282,29 +282,40 @@ const vocabToCSV = vocabWordsByLevel => {
 
 vocabToCSV(vocabWordsByLevel)
 
-const getRadicalsForHanzi = hanziToCheck => (
-  hanzi
+const getRadicalsForHanzi = hanziToCheck => {
+  const components = hanzi
     .decompose(hanziToCheck, 2)
-    .components.map(radical => radicalInfo[radical])
+    .components
+
+
+    components
+      .map(radical => {
+        if (radicalInfo[radical]) {
+          return radicalInfo[radical]
+        } else {
+          console.log(radical);
+          return {}
+        }
+      })
     .map(({ radical, meaning }) => radical + ": " + meaning)
     .join(", ")
-)
+}
 
 const hanziToCSV = hanziLevels => {
   let cards = []
 
   hanziLevels.forEach((level, idx) => {
-    level.forEach(hanzi => {
-      const pinyin = getPinyin(hanzi)
+    level.forEach(focusedHanzi => {
+      const pinyin = getPinyin(focusedHanzi)
 
       const [{ traditional, definition }] = hanzi.definitionLookup(
-        hanzi
+        focusedHanzi
       )
 
-      const radicals = getRadicalsForHanzi(hanzi)
+      const radicals = getRadicalsForHanzi(focusedHanzi)
 
       cards.push([
-        hanzi,
+        focusedHanzi,
         definition,
         traditional,
         radicals,
@@ -316,6 +327,8 @@ const hanziToCSV = hanziLevels => {
 
   fs.writeFileSync("hanzi.csv", stringify(cards))
 }
+
+hanziToCSV(levels)
 
 // this just prints out a summary of the contents of all the levels
 // when we're doing this for real we'll want to export to JSON, CSV,
