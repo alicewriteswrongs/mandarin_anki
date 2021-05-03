@@ -287,14 +287,15 @@ const getRadicalsForHanzi = hanziToCheck => {
     .decompose(hanziToCheck, 2)
     .components
 
-
-  components
+  return components
     .map(radical => {
       if (radicalInfo[radical]) {
         return radicalInfo[radical]
       } else {
-        console.log(radical);
-        return {}
+        return { 
+          radical,
+          meaning: "unknown"
+        }
       }
     })
     .map(({ radical, meaning }) => radical + ": " + meaning)
@@ -324,9 +325,6 @@ const hanziToCSV = hanziLevels => {
   hanziLevels.forEach((level, idx) => {
     level.forEach(focusedHanzi => {
       const pinyin = getPinyin(focusedHanzi)
-
-      console.log(focusedHanzi);
-      console.log(hanzi.definitionLookup(focusedHanzi));
 
       const result = hanzi.definitionLookup(focusedHanzi)
       let traditional, definition
