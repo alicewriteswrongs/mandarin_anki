@@ -288,18 +288,35 @@ const getRadicalsForHanzi = hanziToCheck => {
     .components
 
 
-    components
-      .map(radical => {
-        if (radicalInfo[radical]) {
-          return radicalInfo[radical]
-        } else {
-          console.log(radical);
-          return {}
-        }
-      })
+  components
+    .map(radical => {
+      if (radicalInfo[radical]) {
+        return radicalInfo[radical]
+      } else {
+        console.log(radical);
+        return {}
+      }
+    })
     .map(({ radical, meaning }) => radical + ": " + meaning)
     .join(", ")
 }
+
+const errantHanzi = {
+  "参": {
+    traditional: "㕘",
+    definition: "to take part in / to participate / to join / to attend / to counsel / unequal / varied / irregular / uneven / not uniform"
+  },
+  "讬": {
+    traditional: "託",
+    definition: "to trust / to entrust / to be entrusted with / to act as trustee (nonstandard variant of 託｜托)"}
+  ,
+  "塭": {
+    traditional: "塭",
+    definition: "bound form) used in 魚塭｜鱼塭 / used in place names"
+  }
+}
+
+const missingHanzi = []
 
 const hanziToCSV = hanziLevels => {
   let cards = []
@@ -308,9 +325,17 @@ const hanziToCSV = hanziLevels => {
     level.forEach(focusedHanzi => {
       const pinyin = getPinyin(focusedHanzi)
 
-      const [{ traditional, definition }] = hanzi.definitionLookup(
-        focusedHanzi
-      )
+      console.log(focusedHanzi);
+      console.log(hanzi.definitionLookup(focusedHanzi));
+
+      const result = hanzi.definitionLookup(focusedHanzi)
+      let traditional, definition
+      if (result) {
+        [{ traditional, definition }] = result
+      } else {
+        traditional= errantHanzi[focusedHanzi].traditional
+        definition  = errantHanzi[focusedHanzi].definition
+      }
 
       const radicals = getRadicalsForHanzi(focusedHanzi)
 
