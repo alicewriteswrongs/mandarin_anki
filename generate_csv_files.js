@@ -60,7 +60,7 @@ let radicals = getRadicalsByLevel(levels)
 // the DNWorder for the Hanzi leaves out some hanzi which are found in both the 10,000
 // most common words, and also some hanzi which are found in HSK. We want to insert
 // those back into the levels, at a point where the radicals the include have already
-// been covered. I calcualted which hanzi were missing, and these are them:
+// been covered. I calculated which hanzi were missing, and these are them:
 const unincludedHSKHanzi = "四伞互嚏裔桔鼠浏魅嗯升髦暧凹凸曝甭迸嘈诧磋馈禽兽墟尴尬阂嗨暄咀瞩侃愣嘛哦烹饪锲曲惮婪缉哇潇熨咋拽".split(
   ""
 )
