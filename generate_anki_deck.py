@@ -9,7 +9,7 @@ hanzi_deck = genanki.Deck(
 
 
 radical_model = genanki.Model(
-    2024374028,
+    2024474028,
     'Radical',
     fields=[
         {"name": "sort"},
@@ -21,18 +21,18 @@ radical_model = genanki.Model(
     templates=[
         {
             'name': 'Card 1',
-            'qfmt': '{{radical}}',
+            'qfmt': '{{Radical}}',
             'afmt': """{{FrontSide}}
 
 <hr id=answer>
 
-meaning: {{ meaning }}
+meaning: {{ Meaning }}
 <br>
-pinyin: {{pinyin}}
+pinyin: {{Pinyin}}
 
-{{#traditional}}
-this radical has a traditional variant: {{ traditional }}
-{{/traditional}}"""
+{{#Traditional}}
+this radical has a traditional variant: {{ Traditional }}
+{{/Traditional}}"""
         },
     ],
     css=""".card {
@@ -59,35 +59,35 @@ hanzi_model = genanki.Model(
     templates=[
         {
             'name': 'Card 1: hanzi recognition',
-            'qfmt': '{{hanzi}}',
+            'qfmt': '{{Hanzi}}',
             'afmt': """{{FrontSide}}
 
 <hr id=answer>
 
-{{definition}}
+{{Definition}}
 <br><br>
-{{pinyin}}
+{{Pinyin}}
 <br><br>
-radicals: {{ radicals }}
+radicals: {{ Radicals }}
 <br><br>
-traditional form: {{traditional}}"""
+traditional form: {{Traditional}}"""
         },
         {
             'name': 'Card 2: reading to meaning',
-            'qfmt': '{{pinyin}}',
+            'qfmt': '{{Pinyin}}',
             'afmt': """{{FrontSide}}
 
 <hr id=answer>
 
 <br><br>
-{{hanzi}}
+{{Hanzi}}
 <br><br>
-{{definition}}
+{{Definition}}
 
 <br><br>
-radicals: {{ radicals }}
+radicals: {{ Radicals }}
 <br><br>
-traditional form: {{traditional}}"""
+traditional form: {{Traditional}}"""
         },
     ],
     css=""".card {
@@ -112,17 +112,17 @@ vocab_model = genanki.Model(
     templates=[
         {
             'name': 'Card 1: hanzi recognition',
-            'qfmt': '{{word}}',
+            'qfmt': '{{Word}}',
             'afmt': """{{FrontSide}}
 
 <hr id=answer>
 
-{{pinyin}}
+{{Pinyin}}
 <br><br>
-{{definition}}
+{{Definition}}
 <br><br>
-<a href="https://forvo.com/word/{{word}}/#zh">
-pronunciation
+<a href="https://forvo.com/word/{{Word}}/#zh">
+Pronunciation
 </a>"""
         },
     ],
