@@ -51,7 +51,7 @@ hanzi_model = genanki.Model(
     fields=[
         {"name": "sort"},
         {"name": "Hanzi"},
-        {"name": "Definitional"},
+        {"name": "Definition"},
         {"name": "Traditional"},
         {"name": "Radicals"},
         {"name": "Pinyin"},
