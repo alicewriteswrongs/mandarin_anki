@@ -37,7 +37,7 @@ this radical has a traditional variant: {{ Traditional }}
     ],
     css=""".card {
   font-family: arial;
-  font-size: 20px;
+  font-size: 35px;
   text-align: center;
   color: black;
   background-color: #b96bff;
@@ -92,7 +92,7 @@ traditional form: {{Traditional}}"""
     ],
     css=""".card {
   font-family: arial;
-  font-size: 20px;
+  font-size: 35px;
   text-align: center;
   color: black;
   background-color: #08ff00;
@@ -128,7 +128,7 @@ Pronunciation
     ],
     css=""".card {
   font-family: arial;
-  font-size: 20px;
+  font-size: 35px;
   text-align: center;
   color: black;
   background-color: #00ffc3;
