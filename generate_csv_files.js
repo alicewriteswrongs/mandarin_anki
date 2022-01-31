@@ -237,8 +237,6 @@ const radicalsToCSV = radicals => {
           entry.meaning,
           `level${idx + 1}`
         ])
-      } else {
-        cards.push([radical, "", "", "", `level${idx + 1}`])
       }
     })
   })
